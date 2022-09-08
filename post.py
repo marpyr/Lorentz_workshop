@@ -32,12 +32,17 @@ def load_weight(weight_file, trained_model, test_X, test_y):
     y_pred = model.predict(test_X)
     return y_pred, val1, val2
 
-def score(y_truth, y_pred):
-    recall = recall_score(y_truth, y_pred, nbins)
+def score(y_truth, y_pred, nbins, y_pred_ref):
+    recall = recall_score(y_truth, y_pred, nbins) 
     precision = precision_score(y_truth, y_pred)
     f1 = f1_score(y_truth, y_pred)
     acc = accuracy_score(y_truth, y_pred)
-    BS = brier_score_loss(y_truth, y_pred)
+    
     # BSS 
-    calib_y, calib_x = calibration_curve(y_truth, y_pred, n_bins=nbins)
-    return reccall, precision, f1, acc, BS, calib_y, calib_x
+    bs = brier_score_loss(y_truth, y_pred)
+    bss = brier_score_loss(y_truth, y_pred_ref)
+    bss = 1 - bs / bss
+    
+    # reliability diagram
+    calib_y, calib_x = calibration_curve(y_truth, y_pred, n_bins=nbins) 
+    return reccall, precision, f1, acc, bss, calib_y, calib_x
