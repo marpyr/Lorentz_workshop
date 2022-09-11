@@ -76,6 +76,5 @@ def sel_train_data_lead(nc_in_file,target_len,
     pc_predictor = xr.concat(pc_predictor,"new_time").rename({"time":"lag"}).rename({"new_time":"time"})
     pc_predictor = pc_predictor.assign_coords(time=time_list)
     pc_predictor = pc_predictor.assign_coords(time=pd.DatetimeIndex(pc_predictor.time)) #-pd.Timedelta("15 d"))
-    #print('pc_predictor_shape',pc_predictor.shape)
     return pc_predictor
     
