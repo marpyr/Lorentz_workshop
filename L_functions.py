@@ -33,7 +33,7 @@ def sel_train_data_lead(nc_in_file,target_len,
     Moreover, a selected time step for the LSTM 
     is considered (ntimestep).
     '''
-    
+    drop_OND_years = [2005,2007,2018,2004,2006]
     print('starting')
 
     SDD = int(s_target_date[0:2])
@@ -51,24 +51,21 @@ def sel_train_data_lead(nc_in_file,target_len,
     # Create correctly formated datetime
     date_target = datetime.strftime(datetime(year=SYY,month=SMM,day=SDD), "%Y.%m.%d")
     
-    # Initialize shape of the final predictor array
-    
-    pc_predictor = [] # np.ndarray((target_len,ntimestep,int(nc_in_file[var_name].shape[1])))
+    pc_predictor = []
     time_list = []
     it = 0
     ii = 0
     YYY = SYY
     while YYY < EYY+1:
-        if YYY not in [2005,2007,2018,2004,2006]:
-            date_start = datetime.strftime(datetime.strptime(date_target, "%Y.%m.%d")-    timedelta(days=half_rw+lead_time+rw_1+ntimestep-1),"%Y.%m.%d")
-            date_end = datetime.strftime(datetime.strptime(date_target, "%Y.%m.%d")-    timedelta(days=half_rw+lead_time+rw_1),"%Y.%m.%d")
-            #print(date_target,date_start,date_end,it)
+        if YYY not in drop_OND_years:
+            date_start = datetime.strftime(datetime.strptime(date_target, "%Y.%m.%d") - timedelta(days=half_rw+lead_time+rw_1+ntimestep-1),"%Y.%m.%d")
+            date_end = datetime.strftime(datetime.strptime(date_target, "%Y.%m.%d") - timedelta(days=half_rw+lead_time+rw_1),"%Y.%m.%d")
             f = nc_in_file.sel(time = slice(date_start,date_end))
-            f=f.assign_coords(time=range(ntimestep))
+            f = f.assign_coords(time=range(ntimestep))
             time_list.append(date_target)
             pc_predictor.append(f)
         if date_target == datetime.strftime(datetime(year=YYY,month=EMM,day=EDD),"%Y.%m.%d"):
-            YYY = YYY+1
+            YYY = YYY + 1
             date_target = datetime.strftime(datetime(year=YYY,month=SMM,day=SDD), "%Y.%m.%d")
             it = 0
             #print(YYY)
@@ -79,6 +76,5 @@ def sel_train_data_lead(nc_in_file,target_len,
     pc_predictor = xr.concat(pc_predictor,"new_time").rename({"time":"lag"}).rename({"new_time":"time"})
     pc_predictor = pc_predictor.assign_coords(time=time_list)
     pc_predictor = pc_predictor.assign_coords(time=pd.DatetimeIndex(pc_predictor.time)) #-pd.Timedelta("15 d"))
-    #print('pc_predictor_shape',pc_predictor.shape)
     return pc_predictor
     
